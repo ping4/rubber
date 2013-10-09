@@ -124,11 +124,16 @@ namespace :rubber do
     local_hosts << delim << "\n"
 
     # Write out the hosts file for this machine, use sudo
-    filtered = File.read(hosts_file).gsub(/^#{delim}.*^#{delim}\n?/m, '')
-    logger.info "Writing out aliases into local machines #{hosts_file}, sudo access needed"
-    Rubber::Util::sudo_open(hosts_file, 'w') do |f|
-      f.write(filtered)
-      f.write(local_hosts)
+    existing = File.read(hosts_file)
+    filtered = existing.gsub(/^#{delim}.*^#{delim}\n?/m, '')
+
+    # only write out if it has changed
+    if existing != (filtered + local_hosts)
+      logger.info "Writing out aliases into local machines #{hosts_file}, sudo access needed"
+      Rubber::Util::sudo_open(hosts_file, 'w') do |f|
+        f.write(filtered)
+        f.write(local_hosts)
+      end
     end
   end
 
@@ -474,6 +479,7 @@ namespace :rubber do
       # graphite web app)
       if instance_item.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
+          name = name.gsub('_', '-')
           provider.update("#{name}-#{instance_item.name}", instance_item.external_ip)
         end
       end
