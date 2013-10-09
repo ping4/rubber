@@ -561,7 +561,7 @@ namespace :rubber do
       # automatically reboot if FORCE or if all the hosts that need rebooting
       # are bootstrapping for the first time
       if ENV['FORCE'] =~ /^(t|y)/ || reboot_hosts == auto_reboot_hosts
-        ENV['REBOOT'] = 'y'
+        ENV['REBOOT'] ||= 'y'
         logger.info "Updates require a reboot on hosts #{reboot_hosts.inspect}"
       end
 
